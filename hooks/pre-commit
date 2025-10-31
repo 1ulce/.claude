@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# 多重実行ガード（念のため）
+if [[ "${SUBMODULE_CARETAKER_RAN:-0}" == "1" ]]; then
+    exit 0
+fi
+export SUBMODULE_CARETAKER_RAN=1
+
+# このスクリプトがあるディレクトリ（hooks ディレクトリ）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# リポジトリのルートへ移動（ここ超重要）
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+if git diff --cached --quiet; then
+    export GIT_STAGE_WAS_EMPTY=1
+else
+    export GIT_STAGE_WAS_EMPTY=0
+fi
+
+echo "Running project hooks..."
+
+# 実行するフックは明示的に列挙（1本だけ）
+PROJECT_HOOK="$SCRIPT_DIR/project/submodule.sh"
+if [[ -f "$PROJECT_HOOK" ]]; then
+    echo "Executing $(basename "$PROJECT_HOOK")..."
+    if [[ -x "$PROJECT_HOOK" ]]; then
+        "$PROJECT_HOOK"
+    else
+        bash "$PROJECT_HOOK"
+    fi
+fi
+
+# 個人用フック（任意・ある場合のみ）
+PERSONAL_HOOK="$SCRIPT_DIR/personal/pre-commit.sh"
+if [[ -f "$PERSONAL_HOOK" ]]; then
+    echo "Running personal hooks..."
+    if [[ -x "$PERSONAL_HOOK" ]]; then
+        "$PERSONAL_HOOK"
+    else
+        bash "$PERSONAL_HOOK"
+    fi
+fi

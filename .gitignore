@@ -1,0 +1,23 @@
+# 一時的なデバッグファイル
+debug/*
+!debug/.gitkeep
+
+# 機密情報を含む可能性のあるファイル
+*.secret
+*.key
+*credentials*
+*password*
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
+
+# エディタ一時ファイル
+*~
+.swp
+.swo
+*.tmp
+
+# git hooks
+hooks/personal/*
+!hooks/personal/.keep
